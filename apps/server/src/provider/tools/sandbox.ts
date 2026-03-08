@@ -14,7 +14,8 @@ export class SandboxViolation extends Error {
 
 /** Resolve and validate that a relative path stays within the project directory. */
 export function validate(rel: string, root: string): string {
-  const resolved = path.resolve(root, rel);
+  const canon = fs.realpathSync.native(root);
+  const resolved = path.resolve(canon, rel);
   let canonical: string;
   try {
     canonical = fs.realpathSync.native(resolved);
@@ -28,9 +29,9 @@ export function validate(rel: string, root: string): string {
       canonical = resolved;
     }
   }
-  const norm = root.endsWith(path.sep) ? root : root + path.sep;
-  if (canonical !== root && !canonical.startsWith(norm)) {
-    throw new SandboxViolation(rel, canonical, root);
+  const norm = canon.endsWith(path.sep) ? canon : canon + path.sep;
+  if (canonical !== canon && !canonical.startsWith(norm)) {
+    throw new SandboxViolation(rel, canonical, canon);
   }
   return canonical;
 }
